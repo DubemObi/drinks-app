@@ -1,23 +1,26 @@
-const mongoose = require("mongoose");
 const express = require("express");
-const fs = require("fs");
-const dotenv = require("dotenv");
-dotenv.config({ path: "./config.env" });
-const cookieParser = require("cookie-parser");
-const authRoute = require("./Routes/authRoute");
-const userRoute = require("./Routes/userRoute");
-
 const app = express();
-const PORT = 2050;
+const dotenv = require("dotenv");
+dotenv.config({path : "./config.env"});
+const cors = require("cors");
+const fs = require("fs");
+const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
+const path = require("path");
+const productRoutes = require("./routes/product-route");
+
 app.use(express.json());
 
 app.use(cookieParser());
-app.use("/api/v1/auths", authRoute);
-app.use("/api/v1/users", userRoute);
 
-mongoose.connect(process.env.mongoDB).then(() => {
-  console.log("Connected to Database");
+app.use(cors());
+
+var accessLogStream = fs.createWriteStream(path.join("utils", 'access.log'), {
+    flags : 'a'
 });
-app.listen(PORT, () => {
-  console.log("App is running on port " + PORT);
-});
+
+app.use(morgan('dev', { stream : accessLogStream }));
+
+app.use("/api/v1/products", productRoutes);
+
+module.exports = app;
